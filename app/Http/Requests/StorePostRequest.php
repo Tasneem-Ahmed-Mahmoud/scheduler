@@ -23,19 +23,19 @@ class StorePostRequest extends FormRequest
      */
     public function rules(): array
     {
-        $this->merge([
-            'status' => 'scheduled',
-        ]);
-        
-        $rules = [
+
+
+        return[
             'title' => 'required|string|max:255',
-            'image' => 'image',
-            'platform_ids' => 'required|array|in:1,2,3',
-            'content' => ['required', 'string'],
-            'scheduled_time' => ['required', 'date', 'after_or_equal:now'],
+            'image' => 'nullable|image|max:1024', // moved 'nullable' first (optional but preferred style)
+            'platform_ids' => 'required|array|min:1',
+            'platform_ids.*' => 'required|integer|exists:platforms,id',
+            'content' => 'required|string',
+            'scheduled_time' => 'required|date|after_or_equal:now',
+            'status' => 'required|string|in:scheduled,published,draft',
         ];
 
-        return $rules;
+      
     }
 
     public function withValidator($validator)
@@ -47,16 +47,19 @@ class StorePostRequest extends FormRequest
                 ->whereDate('scheduled_time', now()->toDateString())
                 ->count();
 
+
             if ($todayScheduledCount >= 10) {
                 $validator->errors()->add('scheduled_time', 'You can only schedule 10 posts per day.');
             }
             if ($this->filled('platform_ids')) {
 
+               //  dd($this->platform_ids);
                 $platforms = Platform::whereIn('id', $this->platform_ids)->get();
 
-                if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image')) {
-                    $validator->errors()->add('image', 'Image is required for the selected platform(s).');
-                }
+                // dd($platforms);
+                // if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image')) {
+                //     $validator->errors()->add('image', 'Image is required for the selected platform(s).');
+                // }
 
 
                 if ($this->checkContentIsNotMaxLengthForPlatforms($platforms)) {
@@ -74,6 +77,19 @@ class StorePostRequest extends FormRequest
     public function checkContentIsNotMaxLengthForPlatforms($platforms): bool
     {
         $maxPlatformPostWordsCount = $platforms->sortByDesc('max_post_words_count')->first()->max_post_words_count;
-        return str_word_count($this->content) > $maxPlatformPostWordsCount;
+        return str_word_count($this->content, ) > $maxPlatformPostWordsCount;
     }
+
+//     protected function prepareForValidation()
+// {
+//     if (is_string($this->platform_ids)) {
+//         $decoded = json_decode($this->platform_ids, true);
+//         if (is_array($decoded)) {
+//             $this->merge([
+//                 'platform_ids' => $decoded,
+//             ]);
+//         }
+//     }
+// }
+
 }

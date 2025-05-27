@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
-use App\Http\Resources\PostResource;
-use App\Http\Services\HelperService;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PostResource;
+use App\Http\Services\HelperService;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 
 class PostController extends Controller
 {
@@ -26,71 +27,119 @@ class PostController extends Controller
         }
 
         $posts = $query->with('platforms')->latest()->paginate(10);
-
-        return response()->json($posts);
+        //return response()->json($posts);
+        return ApiResponseSuccess("Posts successfully fetched.", [
+            'posts' => PostResource::collection($posts)
+        ]);
     }
+
+
 
     public function store(StorePostRequest $request)
     {
-        $storedImage = HelperService::StoreImage($request->file('image'));
+        DB::beginTransaction();
 
-        if (!$storedImage) {
-            return response()->json(['message' => 'Image upload failed.'], 422);
+        try {
+            $storedImage = $request->hasFile('image')
+                ? HelperService::StoreImage($request->file('image'))
+                : null;
+
+            $post = Post::create([
+                'title' => $request->title,
+                'content' => $request->content,
+                'image_url' => $storedImage,
+                'scheduled_time' => $request->scheduled_time,
+                'status' => $request->status,
+                'user_id' => Auth::id(),
+            ]);
+
+            $post->platforms()->attach($request->platform_ids, ['platform_status' => 'pending']);
+
+            DB::commit();
+
+            return ApiResponseSuccess("Post created successfully.", [
+                'post' => PostResource::make($post->load('platforms'))
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return ApiResponseError("Failed to create post.", $e->getMessage(), 500);
         }
-
-        $post = Post::create([
-            'title'          => $request->title,
-            'content'        => $request->content,
-            'image_url'      =>  $storedImage,
-            'scheduled_time' => $request->scheduled_time,
-            'status'         => $request->status,
-            'user_id'        => Auth::id(),
-        ]);
-
-        $post->platforms()->attach($request->platform_ids, ['platform_status' => 'pending']);
-
-        return response()->json(['message' => 'Post created successfully.', 'post' => PostResource::make($post)], 201);
     }
+
 
     public function update(UpdatePostRequest $request, Post $post)
     {
-        if ($post->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        DB::beginTransaction();
 
-        if ($post->status !== 'scheduled') {
-            return response()->json(['message' => 'Only scheduled posts can be updated.'], 400);
-        }
+        try {
+            $data = $request->only(['title', 'content', 'scheduled_time', 'status']);
 
-        $post->update($request->only(['title', 'content', 'scheduled_time', 'status']));
+            if ($request->hasFile('image')) {
+                $storedImage = HelperService::StoreImage($request->file('image'));
 
-        if ($request->hasFile('image')) {
+                if (!$storedImage) {
+                    DB::rollBack();
+                    return ApiResponseError("Image upload failed.", 422);
+                }
 
-            $storedImage = HelperService::StoreImage($request->file('image'));
+                if ($post->image_url) {
+                    HelperService::deleteImage($post->image_url);
+                }
 
-            if (!$storedImage) {
-                return response()->json(['message' => 'Image upload failed.'], 422);
+                $data['image_url'] = $storedImage;
             }
 
-            $post->image_url = $storedImage;
-            $post->save();
+            $post->update($data);
+
+            $post->platforms()->syncWithPivotValues($request->platform_ids, ['platform_status' => 'pending']);
+
+            DB::commit();
+
+            return ApiResponseSuccess("Post updated successfully.", [
+                'post' => PostResource::make($post->load('platforms'))
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponseError("Something went wrong during update.", 500, [
+                'error' => $e->getMessage()
+            ]);
         }
-
-
-        $post->platforms()->sync($request->platform_ids, ['platform_status' => 'pending']);
-
-
-        return response()->json(['message' => 'Post updated successfully.', 'post' => PostResource::make($post->load('platforms'))]);
     }
+
 
     public function destroy(Post $post)
     {
         if ($post->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ApiResponseError("Unauthorized", 403);
         }
 
-        $post->delete();
-        
-        return response()->json(['message' => 'Post deleted successfully.']);
+        DB::beginTransaction();
+
+        try {
+
+            if ($post->platforms()->exists()) {
+                $post->platforms()->detach();
+            }
+
+
+            if ($post->image_url) {
+                HelperService::deleteImage($post->image_url);
+            }
+
+            $post->delete();
+
+            DB::commit();
+
+            return ApiResponseSuccess("Post deleted successfully.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return ApiResponseError("Failed to delete post.", 500, [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
+
 }

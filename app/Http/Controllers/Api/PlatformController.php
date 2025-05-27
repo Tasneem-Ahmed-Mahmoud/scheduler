@@ -1,10 +1,11 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Platform;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\Platform\PlatformResource;
 
 class PlatformController extends Controller
 {
@@ -15,27 +16,29 @@ class PlatformController extends Controller
     {
         $platforms = Platform::all();
 
-        return response()->json($platforms);
+        return ApiResponseSuccess("Platforms successfully fetched.", [
+            'platforms' => PlatformResource::collection($platforms)
+        ]);
     }
 
-       /**
+    /**
      * Toggle a platform as active/inactive for current user
      */
- public function toggle(Request $request)
-{
-    $request->validate([
-        'platform_id' => ['required', 'exists:platforms,id'],
-    ]);
+    public function toggle(Request $request)
+    {
+        $request->validate([
+            'platform_id' => ['required', 'exists:platforms,id'],
+        ]);
 
-    $user = Auth::user();
-    $platformId = $request->platform_id;
+        $user = Auth::user();
+        $platformId = $request->platform_id;
 
-    $status = $user->togglePlatform($platformId);
+        $status = $user->togglePlatform($platformId);
 
-    return response()->json([
-        'message'      => "Platform successfully {$status}.",
-        'platform_id'  => $platformId,
-        'status'       => $status
-    ]);
-}
+
+        return ApiResponseSuccess("Platform successfully {$status}.", [
+            'platform_id' => $platformId,
+            'status' => $status
+        ]);
+    }
 }

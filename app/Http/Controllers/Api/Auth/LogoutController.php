@@ -11,6 +11,9 @@ class LogoutController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+       // return response()->json(['message' => 'Logged out successfully.']);
+
+
+        return ApiResponseSuccess('Logged out successfully.');
     }
 }

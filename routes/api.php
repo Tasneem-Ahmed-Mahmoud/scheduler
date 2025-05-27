@@ -1,12 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Profile\ProfileController;
-use App\Http\Controllers\Api\PostController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 
 
 Route::prefix('auth')->group(function () {
@@ -20,9 +20,20 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware('auth:sanctum')->prefix('posts')->group(function () {
-    Route::post('/', [PostController::class, 'store']);
-    Route::get('/', [PostController::class, 'index']);
-    Route::put('{post}', [PostController::class, 'update']);
-    Route::delete('{post}', [PostController::class, 'destroy']);
+Route::middleware('auth:sanctum')->group(function () {
+   
+//posts
+    Route::controller(PostController::class)->prefix('posts')->group(function () {
+        Route::post('/', 'store');
+        Route::get('/', 'index');
+        Route::put('{post}', 'update');
+        Route::delete('{post}', 'destroy');
+    });
+
+// platforms
+    Route::controller(PlatformController::class)->prefix('platforms')->group(function () {
+        Route::get('/', 'index');
+        Route::post('/toggle', 'toggle');
+    });
+
 });

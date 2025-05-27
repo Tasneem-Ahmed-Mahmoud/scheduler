@@ -15,4 +15,12 @@ class HelperService
     {
         return Storage::url($image);
     }
+
+    public static function deleteImage($path)
+    {
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->delete($path);
+        }
+        return false;
+    }
 }

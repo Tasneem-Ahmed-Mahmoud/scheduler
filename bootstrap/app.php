@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Exceptions\ApiExceptionHandler;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -15,5 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+   $exceptions->render(function (Throwable $exception, $request) {
+            $handler = new ApiExceptionHandler();
+            return $handler($exception, $request);
+        });
+
+})
+->create();

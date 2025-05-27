@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\RegisterRequest;
 
@@ -20,8 +21,10 @@ class RegisterController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['token' => $token, 'user' => $user]);
+      
+       return ApiResponseSuccess('Login successful', [
+            'token' =>$user->createToken('auth_token')->plainTextToken,
+            'user' => UserResource::make($user),
+        ]);
     }
 }

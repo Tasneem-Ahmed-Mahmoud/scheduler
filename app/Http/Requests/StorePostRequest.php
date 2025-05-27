@@ -30,7 +30,7 @@ class StorePostRequest extends FormRequest
             'image' => 'nullable|image|max:1024', // moved 'nullable' first (optional but preferred style)
             'platform_ids' => 'required|array|min:1',
             'platform_ids.*' => 'required|integer|exists:platforms,id',
-            'content' => 'required|string',
+            'content' => 'required|string|max:1000|min:10',
             'scheduled_time' => 'required|date|after_or_equal:now',
             'status' => 'required|string|in:scheduled,published,draft',
         ];

@@ -33,8 +33,6 @@ class PostController extends Controller
         ]);
     }
 
-
-
     public function store(StorePostRequest $request)
     {
         DB::beginTransaction();
@@ -66,7 +64,6 @@ class PostController extends Controller
             return ApiResponseError("Failed to create post.", $e->getMessage(), 500);
         }
     }
-
 
     public function update(UpdatePostRequest $request, Post $post)
     {
@@ -107,7 +104,6 @@ class PostController extends Controller
             ]);
         }
     }
-
 
     public function destroy(Post $post)
     {

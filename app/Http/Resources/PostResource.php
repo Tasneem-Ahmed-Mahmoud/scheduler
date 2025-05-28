@@ -19,7 +19,7 @@ class PostResource extends JsonResource
             'id'              => $this->id,
             'title'           => $this->title,
             'content'         => $this->content,
-            'image_url'       => $this->image_url?HelperService::getImageUrl($this->image_url):null,
+            'image_url'       => $this->image_url ? HelperService::getImageUrl($this->image_url) : null,
             'scheduled_time'  => $this->scheduled_time,
             'status'          => $this->status,
             'platforms'       => $this->platforms->map(function ($platform) {

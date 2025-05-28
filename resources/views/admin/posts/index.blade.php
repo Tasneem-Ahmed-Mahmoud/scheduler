@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('admin.layout')
 
 @section('content')
 <div class="container">
@@ -6,6 +6,7 @@
 
     <form method="GET" class="row mb-3">
         <div class="col-md-3">
+            <label for="title">Title</label>
             <select name="status" class="form-select">
                 <option value="">-- Status --</option>
                 <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
@@ -14,12 +15,14 @@
             </select>
         </div>
         <div class="col-md-3">
-            <input type="date" name="from" class="form-control" value="{{ request('from') }}">
+            <label for="from">From</label>
+            <input type="text" name="from" class="form-control datetimepicker" value="{{ request('from') }}">
         </div>
         <div class="col-md-3">
-            <input type="date" name="to" class="form-control" value="{{ request('to') }}">
+            <label for="to">To</label>
+            <input type="text" name="to" class="form-control datetimepicker" value="{{ request('to') }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mt-4">
             <button class="btn btn-primary">Filter</button>
         </div>
     </form>
@@ -51,6 +54,7 @@
         </tbody>
     </table>
 
-    {{ $posts->links() }}
+   {{ $posts->withQueryString()->links() }}
+
 </div>
 @endsection

@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
-use App\Http\Controllers\Api\Profile\ProfileController;
+use App\Http\Controllers\Api\Auth\ProfileController;
 
 
 Route::prefix('auth')->group(function () {

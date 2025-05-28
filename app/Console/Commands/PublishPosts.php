@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class PublishPosts extends Command
 {
@@ -27,11 +28,21 @@ class PublishPosts extends Command
     public function handle()
     {
         $this->info('Command executed');
-        
-        Post::where('status', 'pending')
-            ->where('scheduled_time', '<=', now())
-            ->update(['status' => 'published']);
 
+        $postIds = Post::where('status', 'scheduled')
+            ->where('scheduled_time', '<=', now())
+            ->pluck('id')
+            ->toArray();
+
+
+        DB::table('platform_posts')
+            ->whereIn('post_id', $postIds)
+            ->update(['platform_status' => 'published']);
+
+        DB::table('posts')
+            ->whereIn('id', $postIds)
+            ->update(['status' => 'published']);
+            
         $this->info('Posts published');
     }
 }

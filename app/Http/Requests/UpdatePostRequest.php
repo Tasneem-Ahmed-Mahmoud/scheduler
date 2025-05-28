@@ -23,7 +23,7 @@ class UpdatePostRequest extends FormRequest
      */
     public function rules(): array
     {
-
+        $userPlatforms = auth()->user()->platforms()->select('platform_id')->pluck('platform_id')->toArray();
         $this->merge([
             'status' => 'scheduled',
         ]);
@@ -31,7 +31,7 @@ class UpdatePostRequest extends FormRequest
         $rules = [
             'title' => 'required|string|max:255',
             'image' => 'image',
-            'platform_ids' => 'required|array|in:1,2,3',
+            'platform_ids' => 'required|array|in:' . implode(',', $userPlatforms),
             'content' => ['required', 'string'],
             'scheduled_time' => ['required', 'date', 'after_or_equal:now'],
         ];
@@ -42,7 +42,9 @@ class UpdatePostRequest extends FormRequest
 
     public function withValidator($validator)
     {
-        $post = Post::find($this->route('post'));
+        
+        $post = $this->route('post');
+  
         $validator->after(function ($validator) use ($post) {
             $user = $this->user();
 
@@ -57,7 +59,7 @@ class UpdatePostRequest extends FormRequest
 
                 $platforms = Platform::whereIn('id', $this->platform_ids)->get();
 
-                if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image') && !$post->image_url) {
+                if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image') && !$post->image) {
                     $validator->errors()->add('image', 'Image is required for the selected platform(s).');
                 }
 
@@ -76,6 +78,9 @@ class UpdatePostRequest extends FormRequest
     public function checkContentIsNotMaxLengthForPlatforms($platforms): bool
     {
         $maxPlatformPostWordsCount = $platforms->sortByDesc('max_post_words_count')->first()->max_post_words_count;
+        if (!$maxPlatformPostWordsCount) {
+            return false; // No platform has a max post word count set
+        }
         return str_word_count($this->content) > $maxPlatformPostWordsCount;
     }
 }

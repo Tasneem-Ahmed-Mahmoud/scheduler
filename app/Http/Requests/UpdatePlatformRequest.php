@@ -24,6 +24,8 @@ class UpdatePlatformRequest extends FormRequest
         return [
             'name' => 'required|string|unique:platforms,name,' . $this->platform->id . '|max:255',
             'type' => 'required|string|unique:platforms,type,' . $this->platform->id . '|max:255',
+            'max_post_words_count' => 'nullable|integer|min:0',
+            'allow_post_without_image' => 'nullable',
         ];
     }
 }

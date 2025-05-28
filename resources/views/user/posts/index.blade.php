@@ -1,62 +1,92 @@
 @extends('user.layout')
 
 @section('content')
-    <div class="container">
-        <h2>Posts</h2>
-        <div class="alert alert-info">
-            No posts found. <a href="{{ route('user.posts.create') }}">Create a new post</a>.
+<div class="min-vh-100 bg-light">
+
+    {{-- Main Content --}}
+    <div class="container py-5">
+        {{-- Header --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-primary mb-0">📋 Manage Posts</h2>
+            <a href="{{ route('user.posts.create') }}" class="btn btn-success shadow">
+                <i class="bi bi-plus-circle me-1"></i>
+                Create Post
+            </a>
         </div>
 
-        <form method="GET" class="row mb-3">
-            <div class="col-md-3">
-                <select name="status" class="form-select">
-                    <option value="">-- Status --</option>
-                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                    <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
-                    <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Published</option>
-                </select>
+        {{-- Filters --}}
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-semibold">
+                <i class="bi bi-funnel-fill me-1"></i> Filters
             </div>
-            <div class="col-md-3">
-                <input type="date" name="from" class="form-control" value="{{ request('from') }}">
+            <div class="card-body bg-light">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <select name="status" class="form-select shadow-sm">
+                            <option value="">All Status</option>
+                            <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
+                            <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Published</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="from" class="form-control shadow-sm" value="{{ request('from') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="to" class="form-control shadow-sm" value="{{ request('to') }}">
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-search me-1"></i> Filter
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="col-md-3">
-                <input type="date" name="to" class="form-control" value="{{ request('to') }}">
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-primary">Filter</button>
-            </div>
-        </form>
-        @if ($posts->count() == 0)
-            <div class="alert alert-info">
-                No posts found.
-            </div>
-        @else
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Scheduled For</th>
-                    </tr>
-                </thead>
-                <tbody>
+        </div>
 
-                    @foreach ($posts as $post)
-                        <tr>
-                            <td>{{ $post->title }}</td>
-                            <td>
-                                <span
-                                    class="badge 
-                        @if ($post->status === 'draft') bg-secondary
-                        @elseif($post->status === 'scheduled') bg-warning
-                        @elseif($post->status === 'published') bg-success @endif">
-                                    {{ ucfirst($post->status) }}
-                                </span>
-                            </td>
-                            <td>{{ $post->scheduled_time ? $post->scheduled_time: '—' }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-    @endsection
+        {{-- Posts Table --}}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom fw-semibold">
+                <i class="bi bi-list-ul me-1 text-primary"></i> Posts List
+            </div>
+            <div class="card-body p-0">
+                @if ($posts->count())
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="bi bi-type me-1 text-muted"></i> Title</th>
+                                    <th><i class="bi bi-check2-circle me-1 text-muted"></i> Status</th>
+                                    <th><i class="bi bi-clock me-1 text-muted"></i> Scheduled Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($posts as $post)
+                                    <tr class="table-row">
+                                        <td class="fw-semibold">{{ $post->title }}</td>
+                                        <td>
+                                            <span class="badge rounded-pill px-3
+                                                @if ($post->status == 'draft') bg-secondary
+                                                @elseif ($post->status == 'scheduled') bg-warning text-dark
+                                                @elseif ($post->status == 'published') bg-success
+                                                @endif">
+                                                {{ ucfirst($post->status) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $post->scheduled_time ?? '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <i class="bi bi-exclamation-circle display-6 text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">No posts found matching your criteria.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

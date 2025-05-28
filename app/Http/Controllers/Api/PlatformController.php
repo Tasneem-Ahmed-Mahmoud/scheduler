@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PlatformResource;
 use App\Models\Platform;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Resources\Platform\PlatformResource;
 
 class PlatformController extends Controller
 {
@@ -34,7 +35,6 @@ class PlatformController extends Controller
         $platformId = $request->platform_id;
 
         $status = $user->togglePlatform($platformId);
-
 
         return ApiResponseSuccess("Platform successfully {$status}.", [
             'platform_id' => $platformId,

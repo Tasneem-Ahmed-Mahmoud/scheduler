@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
+use App\Http\Services\HelperService;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,7 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
-         $query = Post::query()->where('user_id', Auth::id());
+        $query = Post::query()->where('user_id', Auth::id());
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -32,11 +33,11 @@ class PostController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()    
+    public function create()
     {
         $platforms = Auth::user()->platforms()->get();
-    
- 
+
+
         return view('user.posts.create', compact('platforms'));
     }
 
@@ -45,27 +46,22 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request)
     {
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images'), $imageName);
-        } else {
-            $imageName = null;
-        }
+        $storedImage = $request->hasFile('image')
+            ? HelperService::StoreImage($request->file('image'))
+            : null;
 
         $post = Post::create([
-            'user_id' => auth()->id(),
             'title' => $request->title,
             'content' => $request->content,
-            'image_url' => $imageName,
+            'image_url' => $storedImage,
             'scheduled_time' => $request->scheduled_time,
-            'status' => 'pending', // Default status
+            'status' => $request->status,
+            'user_id' => Auth::id(),
         ]);
 
-        $post->platforms()->sync($request->platform_ids);
-
-        return redirect()->route('user.posts.index')->with('success', 'Post added.');
+        $post->platforms()->attach($request->platform_ids, ['platform_status' => 'pending']);
         
+        return redirect()->route('user.posts.index')->with('success', 'Post added.');
     }
 
     /**

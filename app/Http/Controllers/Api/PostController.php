@@ -27,11 +27,13 @@ class PostController extends Controller
         }
 
         $posts = $query->with('platforms')->latest()->paginate(10);
-        //return response()->json($posts);
+       
         return ApiResponseSuccess("Posts successfully fetched.", [
             'posts' => PostResource::collection($posts)
         ]);
     }
+
+
 
     public function store(StorePostRequest $request)
     {
@@ -58,12 +60,14 @@ class PostController extends Controller
             return ApiResponseSuccess("Post created successfully.", [
                 'post' => PostResource::make($post->load('platforms'))
             ], 201);
+
         } catch (\Exception $e) {
             DB::rollBack();
 
             return ApiResponseError("Failed to create post.", $e->getMessage(), 500);
         }
     }
+
 
     public function update(UpdatePostRequest $request, Post $post)
     {
@@ -104,6 +108,7 @@ class PostController extends Controller
             ]);
         }
     }
+
 
     public function destroy(Post $post)
     {

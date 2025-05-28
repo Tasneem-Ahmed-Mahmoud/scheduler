@@ -14,8 +14,7 @@ class ApiExceptionHandler
 {
     public function __invoke(Throwable $exception, Request $request): Response
     {
-       // dd($exception);
-        // Only handle API requests
+     
         if (!$request->expectsJson()) {
             
             throw $exception;
@@ -24,6 +23,7 @@ class ApiExceptionHandler
         if ($exception instanceof ValidationException) {
             return ApiResponseError('Validation Error', 422, $exception->errors());
         }
+        
         // Resource not found
         if ($exception instanceof NotFoundHttpException) {
             return ApiResponseError('Resource not found', 404);

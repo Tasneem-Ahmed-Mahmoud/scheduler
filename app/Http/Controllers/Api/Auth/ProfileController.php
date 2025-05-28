@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api\Profile;
+namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,8 +19,9 @@ class ProfileController extends Controller
     public function update(UpdateProfileRequest $request)
     {
         $validated = $request->validated();
+   
         $user = $request->user();
-        
+
         if (isset($validated['name'])) {
             $user->name = $validated['name'];
         }
@@ -33,7 +36,8 @@ class ProfileController extends Controller
 
         $user->save();
 
-       // return response()->json(['message' => 'Profile updated successfully.']);
-        return ApiResponseSuccess('Profile updated successfully.');
+        return ApiResponseSuccess('Profile updated successfully.', [
+            'user' => UserResource::make($user),
+        ]);
     }
 }

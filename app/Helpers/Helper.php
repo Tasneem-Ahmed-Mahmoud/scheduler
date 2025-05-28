@@ -18,4 +18,3 @@
             'errors' => $errors
         ], $code);
     }
-

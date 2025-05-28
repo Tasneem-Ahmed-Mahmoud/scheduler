@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('admin.layout')
 
 @section('content')
 <div class="container">
@@ -16,6 +16,7 @@
             <tr>
                 <th>#</th>
                 <th>Name</th>
+                <th>Posts Count</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -24,6 +25,9 @@
             <tr>
                 <td>{{ $platform->id }}</td>
                 <td>{{ $platform->name }}</td>
+                <td>
+                    {{ $platform->posts_count }} post
+                </td>
                 <td>
                     <a href="{{ route('admin.platforms.edit', $platform) }}" class="btn btn-sm btn-warning">Edit</a>
                     <form action="{{ route('admin.platforms.destroy', $platform) }}" method="POST" style="display:inline;">

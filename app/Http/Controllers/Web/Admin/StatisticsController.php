@@ -37,6 +37,7 @@ class StatisticsController extends Controller
             'monthlyPostsData' => $postsData,
 
         ];
+        
         return view('admin.statistics', with($statistics));
     }
 }

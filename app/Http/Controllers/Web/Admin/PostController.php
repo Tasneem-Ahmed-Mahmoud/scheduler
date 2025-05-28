@@ -10,25 +10,12 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Post::query();
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('from') && $request->filled('to')) {
-            $query->whereBetween('scheduled_for', [$request->from, $request->to]);
-        }
+        $query = Post::query()->filters($request->all())
+            ->with(['user', 'platforms'])
+            ->whereNotNull('scheduled_time');
 
         $posts = $query->latest()->paginate(10);
 
         return view('admin.posts.index', compact('posts'));
     }
-
-public function calendar()
-{
-    $posts = Post::whereNotNull('scheduled_time')->get();
-    return view('admin.posts.calendar', compact('posts'));
-}
-    
 }

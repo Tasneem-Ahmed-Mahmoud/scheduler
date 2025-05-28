@@ -10,10 +10,11 @@ use Illuminate\Http\Request;
 
 class PlatformController extends Controller
 {
-    
-      public function index()
+
+    public function index()
     {
-        $platforms = Platform::latest()->get();
+        $platforms = Platform::withCount('posts')->latest()->get();
+
         return view('admin.platforms.index', compact('platforms'));
     }
 
@@ -24,8 +25,11 @@ class PlatformController extends Controller
 
     public function store(StorePlatformRequest $request)
     {
-        Platform::create($request->validated());
-        return redirect()->route('platforms.index')->with('success', 'Platform added.');
+        $inputs = $request->validated();
+        $inputs['allow_post_without_image'] = $request->has('allow_post_without_image') ? true : false;
+        $inputs['max_post_words_count'] = $request->input('max_post_words_count', null);
+        Platform::create($inputs);
+        return redirect()->route('admin.platforms.index')->with('success', 'Platform added.');
     }
 
     public function edit(Platform $platform)
@@ -35,13 +39,26 @@ class PlatformController extends Controller
 
     public function update(UpdatePlatformRequest $request, Platform $platform)
     {
-        $platform->update($request->validated());
-        return redirect()->route('platforms.index')->with('success', 'Platform updated.');
+        $inputs = $request->validated();
+
+        if (!isset($inputs['allow_post_without_image'])) {
+            $inputs['allow_post_without_image'] = false;
+        } else {
+            $inputs['allow_post_without_image'] = true;
+        }
+
+        if (!isset($inputs['max_post_words_count'])) {
+            $inputs['max_post_words_count'] = null;
+        }
+
+        $platform->update($inputs);
+
+        return redirect()->route('admin.platforms.index')->with('success', 'Platform updated.');
     }
 
     public function destroy(Platform $platform)
     {
         $platform->delete();
-        return redirect()->route('platforms.index')->with('success', 'Platform deleted.');
+        return redirect()->route('admin.platforms.index')->with('success', 'Platform deleted.');
     }
 }

@@ -13,6 +13,8 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -110,12 +112,12 @@
 
                         <li class="nav-item">
                             <a href="{{ route('admin.posts.index') }}"
-                                class="nav-link {{ request()->is('posts*') ? 'active' : '' }}">Posts</a>
+                                class="nav-link {{ request()->routeIs('admin.posts.*') ? 'active' : '' }}">Posts</a>
                         </li>
 
                         <li class="nav-item">
                             <a href="{{ route('admin.platforms.index') }}"
-                                class="nav-link {{ request()->routeIs('platforms.*') ? 'active' : '' }}">Platforms</a>
+                                class="nav-link {{ request()->routeIs('admin.platforms.*') ? 'active' : '' }}">Platforms</a>
                         </li>
 
 
@@ -138,6 +140,15 @@
         </div>
     </div>
     <!-- Scripts -->
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr(".datetimepicker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+    </script>
     @yield('scripts')
 </body>
 

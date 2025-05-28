@@ -23,44 +23,45 @@ class StorePostRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userPlatforms = auth()->user()->platforms()->select('platform_id')->pluck('platform_id')->toArray();
 
+        $this->merge([
+            'status' => 'scheduled',
+        ]);
 
-        return[
+        $rules = [
             'title' => 'required|string|max:255',
-            'image' => 'nullable|image|max:1024', // moved 'nullable' first (optional but preferred style)
-            'platform_ids' => 'required|array|min:1',
-            'platform_ids.*' => 'required|integer|exists:platforms,id',
-            'content' => 'required|string|max:1000|min:10',
-            'scheduled_time' => 'required|date|after_or_equal:now',
-            'status' => 'required|string|in:scheduled,published,draft',
+            'image' => 'image',
+            'platform_ids' => 'required|array|in:' . implode(',', $userPlatforms),
+            'content' => ['required', 'string'],
+            'scheduled_time' => ['required', 'date', 'after_or_equal:now'],
         ];
 
-      
+        return $rules;
     }
 
     public function withValidator($validator)
     {
+
         $validator->after(function ($validator) {
+            
             $user = $this->user();
-
+            
             $todayScheduledCount = $user->posts()
-                ->whereDate('scheduled_time', now()->toDateString())
+                ->whereDate('scheduled_time', '=', \Carbon\Carbon::parse($this->scheduled_time)->toDateString())
                 ->count();
-
 
             if ($todayScheduledCount >= 10) {
                 $validator->errors()->add('scheduled_time', 'You can only schedule 10 posts per day.');
             }
-            if ($this->filled('platform_ids')) {
+            
+            if ($this->filled('platform_ids') && is_array($this->platform_ids)) {
 
-               //  dd($this->platform_ids);
                 $platforms = Platform::whereIn('id', $this->platform_ids)->get();
 
-                // dd($platforms);
-                // if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image')) {
-                //     $validator->errors()->add('image', 'Image is required for the selected platform(s).');
-                // }
-
+                if ($this->checkImageIsRequiredForPlatforms($platforms) && !$this->hasFile('image')) {
+                    $validator->errors()->add('image', 'Image is required for the selected platform(s).');
+                }
 
                 if ($this->checkContentIsNotMaxLengthForPlatforms($platforms)) {
                     $validator->errors()->add('content', 'Content exceeds the maximum word count for the selected platform(s).');
@@ -77,19 +78,6 @@ class StorePostRequest extends FormRequest
     public function checkContentIsNotMaxLengthForPlatforms($platforms): bool
     {
         $maxPlatformPostWordsCount = $platforms->sortByDesc('max_post_words_count')->first()->max_post_words_count;
-        return str_word_count($this->content, ) > $maxPlatformPostWordsCount;
+        return str_word_count($this->content) > $maxPlatformPostWordsCount;
     }
-
-//     protected function prepareForValidation()
-// {
-//     if (is_string($this->platform_ids)) {
-//         $decoded = json_decode($this->platform_ids, true);
-//         if (is_array($decoded)) {
-//             $this->merge([
-//                 'platform_ids' => $decoded,
-//             ]);
-//         }
-//     }
-// }
-
 }

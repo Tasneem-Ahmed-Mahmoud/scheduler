@@ -20,8 +20,9 @@
                 <i class="bi bi-funnel-fill me-1"></i> Filters
             </div>
             <div class="card-body bg-light">
-                <form method="GET" class="row g-3">
+                <form method="GET" class="row g-3 align-items-end">
                     <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
                         <select name="status" class="form-select shadow-sm">
                             <option value="">All Status</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
@@ -30,13 +31,16 @@
                         </select>
                     </div>
                     <div class="col-md-3">
+                        <label for="from" class="form-label">From</label>
                         <input type="date" name="from" class="form-control shadow-sm" value="{{ request('from') }}">
                     </div>
                     <div class="col-md-3">
+                        <label for="to" class="form-label">To</label>
                         <input type="date" name="to" class="form-control shadow-sm" value="{{ request('to') }}">
                     </div>
                     <div class="col-2">
-                        <button class="btn btn-outline-primary">
+                      
+                        <button class="btn btn-outline-primary ">
                             <i class="bi bi-search me-1"></i> Filter
                         </button>
                     </div>
